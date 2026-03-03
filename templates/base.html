@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description"
+        content="{% block description %}Explore various airport destinations and airlines around the world.{% endblock %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Airport Destinations and Airlines{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <!-- jQuery UI CSS for Autocomplete -->
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Slick Slider CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
+    <!-- Custom CSS -->
+    <style>
+        /* Set background image */
+        body {
+            background-image: url('/static/img/selcuklu2.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Main Navbar Styling */
+        .main-navbar {
+            background-color: rgba(255, 255, 255, 0.9) !important; /* Light glassmorphism */
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.5);
+        }
+        .main-navbar .navbar-brand img {
+            height: 55px;
+            width: auto;
+            transition: transform 0.3s ease;
+        }
+        .main-navbar .navbar-brand:hover img {
+            transform: scale(1.05);
+        }
+        .main-navbar .nav-link {
+            color: #333 !important;
+            font-weight: 600;
+            margin: 0 5px;
+            transition: color 0.3s ease;
+        }
+        .main-navbar .nav-link:hover {
+            color: #007bff !important;
+        }
+        /* Enhanced search input styling */
+        .main-navbar .input-group {
+            border-radius: 25px;
+            border: 1px solid #e0e0e0;
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            overflow: hidden; /* Ensures inner elements respect the border-radius */
+            max-width: 350px; /* Limit width for aesthetic */
+            width: 100%; /* Ensure it takes full width up to max-width */
+        }
+        .main-navbar .input-group .form-control {
+            border: none; /* Remove individual border */
+            background-color: transparent; /* Inherit from parent input-group */
+            color: #495057;
+            padding-left: 20px;
+            height: calc(1.5em + .75rem + 2px); /* Bootstrap default input height */
+        }
+        .main-navbar .input-group .form-control:focus {
+            box-shadow: none; /* Remove default focus shadow from input itself */
+            border-color: transparent; /* Remove default focus border from input itself */
+        }
+        .main-navbar .input-group:focus-within {
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15), 0 5px 15px rgba(0,0,0,0.1);
+            border-color: #80bdff;
+        }
+        .main-navbar .input-group-append .input-group-text {
+            background-color: transparent; /* Inherit from parent input-group */
+            border: none; /* Remove individual border */
+            color: #495057;
+            padding-right: 15px;
+            cursor: pointer; /* Indicate it's clickable, even if it just submits the form */
+            display: flex;
+            align-items: center;
+        }
+
+        /* Main Footer Styling */
+        .main-footer {
+            background-color: rgba(33, 37, 41, 0.95);
+            color: #f8f9fa;
+            padding: 40px 0;
+            margin-top: auto;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+        }
+        .main-footer p {
+            margin-bottom: 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Footer Discover Links */
+        .main-footer .footer-discover-links a {
+            font-weight: 500; /* Slightly bolder than default */
+            padding: 5px 0;
+            display: block; /* Make the whole area clickable */
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+        .main-footer .footer-discover-links a:hover {
+            color: #007bff !important; /* Bootstrap primary blue */
+            transform: translateX(5px); /* Subtle slide effect */
+        }
+        .main-footer .footer-discover-links a i {
+            transition: transform 0.2s ease;
+        }
+        .main-footer .footer-discover-links a:hover i {
+            transform: scale(1.1); /* Slightly enlarge icon on hover */
+        }
+
+        /* Back to Top Button */
+        #back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: none;
+            z-index: 99;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: background-color 0.3s, transform 0.3s;
+            text-align: center;
+            line-height: 50px;
+        }
+        #back-to-top:hover {
+            background-color: #0056b3;
+            transform: scale(1.1);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon/site.webmanifest">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light main-navbar" aria-label="Flight routes navbar">
+        <div class="container-lg">
+            <a class="navbar-brand" href="/">
+                <img src="{{ url_for('static', filename='img/a.jpg') }}" alt="My logo" width="100" height="100">
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/airports">Airports</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/carriers">Carriers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/game">Game <span class="badge badge-success ml-1">new</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/#">Staff <span class="badge badge-warning ml-1">soon</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/#">Routes <span class="badge badge-warning ml-2">soon</span></a>
+                    </li>
+                </ul>
+                <form class="form-inline my-2 my-lg-0" action="/search" method="GET">
+                    <div class="input-group">
+                        <input class="form-control" type="search" placeholder="Search Airports or Carriers" id="search-input"
+                            aria-label="Search" name="query" autocomplete="off">
+                        <div class="input-group-append">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <button id="back-to-top" title="Go to top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Footer -->
+    <footer class="main-footer text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-md-left mb-3 mb-md-0">
+                    <h5 class="text-white mb-3 font-weight-bold">Discover</h5>
+                    <p class="text-white-50 small mb-3">Explore our extensive aviation database.</p>
+                    <ul class="list-unstyled footer-discover-links">
+                        <li><a href="/airports" class="text-white text-decoration-none"><i class="fas fa-plane mr-2"></i> Airports</a></li>
+                        <li><a href="/countries" class="text-white text-decoration-none"><i class="fas fa-globe-americas mr-2"></i> Countries</a></li>
+                        <li><a href="/continents" class="text-white text-decoration-none"><i class="fas fa-map mr-2"></i> Continents</a></li>
+                        <li><a href="/carriers" class="text-white text-decoration-none"><i class="fas fa-building mr-2"></i> Carriers</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-6 text-md-right">
+                    <h5 class="text-white mb-3">Contact Me</h5>
+                    <p class="text-white-50">
+                        If you encounter any issues or have suggestions, feel free to reach out!
+                    </p>
+                    <a href="mailto:tolgakurtulus95@gmail.com" class="btn btn-outline-light btn-sm rounded-pill">
+                        <i class="fas fa-envelope mr-2"></i> Email Me
+                    </a>
+                </div>
+            </div>
+            <hr class="bg-white-50 my-4">
+            <p class="mb-0 opacity-75">&copy; 2026 Aviation Intelligence. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <!-- Load full jQuery for Autocomplete functionality -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.9/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- jQuery UI JS for Autocomplete -->
+    <script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script>
+        $(function() {
+            $("#search-input").autocomplete({
+                source: function(request, response) {
+                    $.getJSON("/suggest", {
+                        term: request.term
+                    }, response);
+                },
+                minLength: 2, // Start suggesting after 2 characters
+                select: function(event, ui) {
+                    if (ui.item.url) {
+                        window.location.href = ui.item.url;
+                    }
+                }
+            });
+
+            // Custom rendering for autocomplete items to include emoji
+            $("#search-input").data("ui-autocomplete")._renderItem = function(ul, item) {
+                return $("<li>")
+                    .append("<div>" + (item.emoji ? item.emoji + " " : "") + item.label + "</div>")
+                    .appendTo(ul);
+            };
+
+            // Back to Top functionality
+            var backToTopBtn = $('#back-to-top');
+
+            $(window).scroll(function() {
+                if ($(window).scrollTop() > 300) {
+                    backToTopBtn.fadeIn();
+                } else {
+                    backToTopBtn.fadeOut();
+                }
+            });
+
+            backToTopBtn.on('click', function(e) {
+                e.preventDefault();
+                $('html, body').animate({scrollTop:0}, '300');
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

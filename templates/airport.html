@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+
+{% block title %}{{ details.display_name }} - Airport Details{% endblock %}
+
+{% block description %}Detailed information about {{ details.display_name }}.{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+    /* Breadcrumb styling for better contrast on primary background */
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+    }
+
+    .breadcrumb-item+.breadcrumb-item::before {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .breadcrumb-item a {
+        color: rgba(255, 255, 255, 0.8) !important;
+        transition: color 0.2s;
+    }
+
+    .breadcrumb-item a:hover {
+        color: #fff !important;
+        text-decoration: none;
+    }
+
+    .breadcrumb-item.active {
+        color: #fff !important;
+        font-weight: 600;
+    }
+
+    /* Table styling */
+    .table-details th {
+        width: 40%;
+        background-color: rgba(0, 0, 0, 0.03);
+        font-weight: 600;
+    }
+
+    /* Map and Embed containers */
+    #mapid {
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .embed-card {
+        border: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+
+    .embed-card .card-header {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        border-bottom: 1px solid #eee;
+    }
+
+    .responsive-iframe-container {
+        position: relative;
+        padding-bottom: 56.25%;
+        /* 16:9 */
+        height: 0;
+        overflow: hidden;
+    }
+
+    .responsive-iframe-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+
+    /* Flight Search Buttons */
+    .search-provider-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+    }
+
+    .search-provider-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .provider-logo {
+        height: 45px;
+        object-fit: contain;
+        margin-bottom: 10px;
+        background-color: #a09191; /* Hafif gri arka plan */
+        padding: 5px; /* Logo etrafına dolgu */
+        border-radius: 5px; /* Arka plan için hafif yuvarlak köşeler */
+    }
+
+    /* Skyvector specific */
+    #skyvector-container {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        border: 1px solid #ddd;
+    }
+
+    .nav-tabs .nav-link {
+        color: #495057;
+        font-weight: 500;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #007bff;
+        border-bottom: 3px solid #007bff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header with Jumbotron -->
+<header class="jumbotron jumbotron-fluid bg-primary text-white text-center py-4 mb-0">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/continents/{{ details.continent }}">{{
+                        details.continent }}</a></li>
+                <li class="breadcrumb-item"><a href="/countries/{{ details.country_code }}">{{
+                        details.CountryName }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ details.display_name }}</li>
+            </ol>
+        </nav>
+        <h1 class="display-4 mb-2">
+            <img src="{{ url_for('static', filename='flags/' + details.country_code + '.svg') }}"
+                alt="{{ details.CountryName }} Flag" width="60" class="mr-3 shadow-sm" style="border-radius: 4px;">
+            {{ details.display_name }}
+        </h1>
+        <br>
+    </div>
+</header>
+
+<div class="container mt-n4">
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-0">
+            <!-- Navigation Tabs for Different Sections -->
+            <ul class="nav nav-tabs nav-fill" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link active" id="details-tab" data-toggle="tab" href="#details" role="tab"
+                        aria-controls="details" aria-selected="true">Details</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="map-tab" data-toggle="tab" href="#map" role="tab" aria-controls="map"
+                        aria-selected="false">Live Map</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="links-tab" data-toggle="tab" href="#links" role="tab" aria-controls="links"
+                        aria-selected="false">Events</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link" id="flight-search-tab" data-toggle="tab" href="#flight-search" role="tab"
+                        aria-controls="flight-search" aria-selected="false">Flight Search</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="tab-content" id="myTabContent">
+        <!-- Details Tab Content -->
+        <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
+            <div class="row">
+                <!-- Column for the Table -->
+                <div class="col-md-6 mb-4">
+                    <h3 class="mb-3">Airport Specifications</h3>
+                    <!-- Display Airport Details in a Table -->
+                    <table class="table table-hover table-details border">
+                        <tbody>
+                            {% for key, value in details.items() %}
+                            <tr>
+                                <th>{{ key|replace('_', ' ')|replace('-', ' ')|title }}</th>
+                                <td>{{ value }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2">No details available for the selected airport.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Column for the Map -->
+                <div class="col-md-6 mb-4">
+                    <h3 class="mb-3">Location</h3>
+                    <div id="mapid" style="height: 400px; width: 100%;" class="mb-4"></div>
+                    <h4 class="mb-3">Sectional Chart</h4>
+
+                    <!-- Embed Skyvector -->
+                        <div id="sv_3054" style="width: 100%; height: 200px;">Make your <a href="https://skyvector.com/">Flight Plan</a> at SkyVector.com</div><script src="//skyvector.com/api/lchart?ll={{ details['Airport-Latitude'] }},{{ details['Airport-Longitude'] }}&amp;s=3&amp;c=sv_3054&amp;i=301" type="text/javascript"></script>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map Tab Content -->
+        <div class="tab-pane fade" id="map" role="tabpanel" aria-labelledby="map-tab">
+            <div class="col-md-12 mt-3">
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <!-- Embed Windy -->
+                        <div class="card embed-card">
+                            <div class="card-header">Canlı Hava Durumu - Windy</div>
+                            <div class="responsive-iframe-container">
+                                <iframe title="Windy"
+                                    src="https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=default&metricTemp=default&metricWind=default&zoom=9&overlay=wind&product=ecmwf&level=surface&lat={{ details['Airport-Latitude'] }}&lon={{ details['Airport-Longitude'] }}"></iframe>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="col-md-6 mb-3">
+                        <!-- External Link FlightRadar24 -->
+                        <a href="https://www.flightradar24.com/{{ '%.2f'|format(details['Airport-Latitude']) }},{{ '%.2f'|format(details['Airport-Longitude']) }}/9" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                            <div class="card search-provider-card p-4 text-center h-100">
+                                <img src="https://www.flightradar24.com/static/mapapp/26.061.0929.b73804a/assets/svg/logo-without-radar-and-slogan.svg"
+                                    alt="FlightRadar24 Logo" class="provider-logo mx-auto">
+                                <h5 class="text-dark">Canlı Uçuş Trafiği - FlightRadar24</h5>
+                                <p class="small text-muted mb-0">Gerçek zamanlı uçuşları takip edin.</p>
+                                <button class="btn btn-primary btn-sm mt-3"><i class="fas fa-external-link-alt mr-2"></i> FlightRadar24'e Git</button>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <!-- External Link AirNav Radar -->
+                        <a href="https://www.radarbox.com/@{{ '%.2f'|format(details['Airport-Latitude']) }},{{ '%.2f'|format(details['Airport-Longitude']) }},z9" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                            <div class="card search-provider-card p-4 text-center h-100">
+                                <img src="https://www.airnavradar.com/img/assets/anr_header_icon_white.svg"
+                                    alt="AirNav Radar Logo" class="provider-logo mx-auto">
+                                <h5 class="text-dark">Canlı Uçuş Trafiği - AirNav Radar</h5>
+                                <p class="small text-muted mb-0">Uçakları canlı harita üzerinde izleyin.</p>
+                                <button class="btn btn-primary btn-sm mt-3"><i class="fas fa-external-link-alt mr-2"></i> AirNav Radar'a Git</button>
+                            </div>
+                        </a>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+        <!-- Links Tab Content -->
+        <div class="tab-pane fade" id="links" role="tabpanel" aria-labelledby="links-tab">
+            <div class="col-md-12 mt-3">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h3 class="card-title">Nearby Events</h3>
+                        <p class="text-muted">Discover conferences, fairs, and festivals near {{ details.display_name
+                            }}.</p>
+                        <div class="responsive-iframe-container" style="padding-bottom: 500px;">
+                            <iframe
+                                src="https://10times.com/events/nearby?lat={{ details['Airport-Latitude'] }}&lng={{ details['Airport-Longitude'] }}&event_type=0&industry="
+                                allowfullscreen></iframe>
+                        </div>
+                        <div class="mt-3">
+                            <a href="https://10times.com/events/nearby?lat={{ details['Airport-Latitude'] }}&lng={{ details['Airport-Longitude'] }}"
+                                target="_blank" class="btn btn-outline-info btn-block">View All Events on
+                                10times.com</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flight Search Tab Content -->
+        <div class="tab-pane fade" id="flight-search" role="tabpanel" aria-labelledby="flight-search-tab">
+            <div class="col-md-12 mt-4">
+                <h3 class="mb-4">Book Your Flight</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <a href="{{ skyscanner_url }}" target="_blank" class="text-decoration-none">
+                            <div class="card search-provider-card p-4 text-center">
+                                <img src="https://d2csxpduxe849s.cloudfront.net/media/D7A9DB3C-12F4-4858-8239584A1011F45E/E271D816-C885-4D73-85E34787A7F3C96C/thul-F73F5DBE-0529-4752-BF73FFF8515FEA6A.png"
+                                    alt="Skyscanner" class="provider-logo mx-auto">
+                                <h5 class="text-dark">Search on Skyscanner</h5>
+                                <p class="small text-muted mb-0">Find the best deals from {{ details.display_name }}</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <a href="{{ kayak_url }}" target="_blank" class="text-decoration-none">
+                            <div class="card search-provider-card p-4 text-center">
+                                <img src="https://logowik.com/content/uploads/images/kayakcom1466.jpg" alt="Kayak"
+                                    class="provider-logo mx-auto">
+                                <h5 class="text-dark">Search on Kayak</h5>
+                                <p class="small text-muted mb-0">Compare prices and book your next trip</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-5 p-4 bg-light rounded border">
+                    <h5>Explore More</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-arrow-right text-primary mr-2"></i>
+                            <a href="{{ url_for('get_airports_by_country', country_code=details['country_code']) }}"
+                                class="text-primary font-weight-bold">Show other airports in {{ details['CountryName']
+                                }}</a>
+                        </li>
+                        <li>
+                            <i class="fas fa-arrow-right text-primary mr-2"></i>
+                            <a href="{{ url_for('get_airports_by_continent', continent=details['continent']) }}"
+                                class="text-primary font-weight-bold">Show other airports in {{ details['continent'] }}
+                                continent</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-5 mb-3">
+        <hr>
+        <p class="text-muted small">* Bilgilerde bir hata olduğunu düşünüyorsanız, lütfen <a href="mailto:tolgakurtulus95@gmail.com" class="text-primary">iletişime</a> geçiniz.</p>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS (Loaded before custom script) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    var lat = {{ details['Airport-Latitude'] }};
+    var lon = {{ details['Airport-Longitude'] }};
+    var map = L.map('mapid').setView([lat, lon], 13);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    var marker = L.marker([lat, lon]).addTo(map);
+
+    // Fetch weather data from Open-Meteo API
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`)
+        .then(response => response.json())
+        .then(data => {
+            let popupContent = `<b>{{ details['display_name'] }}</b><br>`;
+            if (data.current_weather) {
+                const weather = data.current_weather;
+                const units = data.current_weather_units;
+                popupContent += `
+                    <hr style="margin: 5px 0;">
+                    <div style="font-size: 0.9em;">
+                        🌡️ ${weather.temperature}${units.temperature}<br>
+                        💨 ${weather.windspeed} ${units.windspeed} @${weather.winddirection}°<br>
+                        ${weather.is_day ? '☀️ Day' : '🌙 Night'}
+                    </div>
+                `;
+            } else {
+                popupContent += `<br>Weather data not available.`;
+            }
+            marker.bindPopup(popupContent).openPopup();
+        })
+        .catch(error => {
+            console.error('Error fetching weather data:', error);
+            marker.bindPopup(`<b>{{ details['display_name'] }}</b><br>Could not load weather data.`).openPopup();
+        });
+
+    // Fix Leaflet gray tiles issue when switching tabs, especially when the map is not in the initially active tab.
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        if (e.target.id === 'details-tab') {
+            map.invalidateSize();
+        }
+    });
+    });
+</script>
+{% endblock %}

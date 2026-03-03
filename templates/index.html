@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Aviation Intelligence Platform{% endblock %}
+
+{% block extra_css %}
+<!-- FontAwesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    /* Hero Section: Modern, engaging, and clean */
+    .hero-section {
+        background: linear-gradient(135deg, rgba(0, 82, 212, 0.9), rgba(67, 100, 247, 0.9), rgba(111, 177, 252, 0.9));
+        color: white;
+        padding: 120px 0 100px;
+        margin-bottom: 0;
+        border-radius: 0 0 50px 50px; /* Soft curve at the bottom */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+
+    .hero-section h1 {
+        font-weight: 800; /* Bold and impactful */
+        letter-spacing: -1px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    
+    .hero-section .lead {
+        font-size: 1.25rem;
+        opacity: 0.9;
+    }
+
+    /* Call-to-Action Buttons in Hero */
+    .btn-cta {
+        padding: 15px 40px;
+        font-weight: 700;
+        border-radius: 50px; /* Pill shape */
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .btn-cta-light {
+        background: white;
+        color: #0052d4;
+        border: none;
+    }
+    .btn-cta-light:hover {
+        background: #f8f9fa;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        color: #0052d4;
+    }
+    .btn-cta-outline {
+        background: transparent;
+        border: 2px solid rgba(255,255,255,0.8);
+        color: white;
+    }
+    .btn-cta-outline:hover {
+        background: white;
+        color: #0052d4;
+        border-color: white;
+        transform: translateY(-3px);
+    }
+
+    /* Overlapping Feature Boxes: A key SaaS design element */
+    .feature-section {
+        margin-top: -60px; /* Pulls the section up to overlap the hero */
+        position: relative;
+        z-index: 10;
+    }
+    .feature-box {
+        background: white;
+        padding: 40px 30px;
+        border-radius: 20px;
+        text-align: center;
+        transition: transform 0.3s, box-shadow 0.3s;
+        height: 100%;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+    .feature-box:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .feature-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #0052d4, #4364f7);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        color: white;
+        font-size: 2rem;
+        box-shadow: 0 10px 20px rgba(0, 82, 212, 0.3);
+    }
+
+    /* Section Headers: Clean and consistent titling */
+    .section-header {
+        text-align: center;
+        margin-bottom: 50px;
+        padding-top: 40px; /* Space above each section */
+    }
+    .section-header h2 {
+        font-weight: 800;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+    .section-header p {
+        color: #7f8c8d;
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* SaaS-style Cards for Airports/Carriers */
+    .saas-card {
+        border: none;
+        border-radius: 15px;
+        background: white;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .saas-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+    .card-img-container {
+        height: 160px;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    .card-img-container img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+    }
+    .saas-card .card-body {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1; /* Allows the button to stick to the bottom */
+    }
+    .saas-card .btn {
+        margin-top: auto; /* Pushes the button to the bottom of the card */
+    }
+
+    /* Final CTA Section */
+    .final-cta {
+        background-color: #f8f9fa;
+        border-radius: 20px;
+        padding: 50px;
+        text-align: center;
+        margin-top: 50px;
+    }
+    .final-cta h2 {
+        font-weight: 700;
+    }
+
+    /* Route Cards */
+    .route-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+        border-left: 5px solid #4364f7;
+        height: 100%;
+    }
+
+    .route-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    
+    /* New Compact List Item Card */
+    .list-item-card {
+        display: flex;
+        align-items: center;
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.04);
+        transition: all 0.3s ease;
+        border: 1px solid #eee;
+    }
+    .list-item-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        border-color: #ddd;
+    }
+    .list-item-card .item-logo {
+        width: 50px;
+        height: 50px;
+        flex-shrink: 0;
+        margin-right: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+    }
+    .list-item-card .item-logo img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+    .list-item-card .item-content {
+        flex-grow: 1;
+    }
+    .list-item-card .item-content h6 {
+        margin-bottom: 2px;
+        font-weight: 700;
+    }
+    .list-item-card .item-content p {
+        margin-bottom: 0;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    .list-item-card .btn {
+        margin-left: 15px;
+        white-space: nowrap;
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="jumbotron jumbotron-fluid hero-section mb-0">
+    <div class="container">
+        <h1 class="display-3 mb-3">Aviation Hub</h1>
+        <p class="lead mb-5">Explore a world of aviation data. Insights on <b>5829</b> airports and <b>6622</b> carriers at your fingertips.</p>
+        <div>
+            <a href="/airports" class="btn btn-cta btn-cta-light mr-md-3 mb-3 mb-md-0">
+                <i class="fas fa-plane-departure mr-2"></i>Explore Airports
+            </a>
+            <a href="/carriers" class="btn btn-cta btn-cta-outline">
+                <i class="fas fa-building mr-2"></i>Discover Carriers
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Overlapping Feature Section -->
+<div class="container feature-section">
+    <div class="row">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="feature-box">
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h4 class="font-weight-bold">Detailed Database</h4>
+                <p class="text-muted mb-0">Access detailed information for thousands of airports and carriers across the globe.</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="feature-box">
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-search-location"></i>
+                </div>
+                <h4 class="font-weight-bold">Powerful Search</h4>
+                <p class="text-muted mb-0">Instantly find any airport or airline with our predictive and fast search.</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-12 mb-4">
+            <div class="feature-box">
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h4 class="font-weight-bold">Staff Page</h4>
+                <p class="text-muted mb-0">** Coming Soon! **</p>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-12 mb-4">
+            <div class="feature-box">
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-route"></i>
+                </div>
+                <h4 class="font-weight-bold">Routes Page</h4>
+                <p class="text-muted mb-0">** Coming Soon! **</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Left Column: Featured Airports -->
+        <div class="col-lg-6">
+            <div class="section-header">
+                <h2>Featured Airports</h2>
+            </div>
+            {% for airport in featured_airports %}
+            <div class="list-item-card">
+                <div class="item-logo">
+                    <img src="{{ url_for('static', filename='flags/' + airport.country_code|string + '.svg') }}"
+                         alt="Flag of {{ airport.CountryName }}"
+                         onerror="this.style.display='none'">
+                </div>
+                <div class="item-content">
+                    <h6 class="text-truncate" title="{{ airport.display_name }}">{{ airport.display_name }}</h6>
+                    <p>{{ airport.CountryName }}</p>
+                </div>
+                <a href="{{ url_for('airport', iata_code=airport.IATACode) if airport.IATACode else '#' }}"
+                   class="btn btn-outline-primary btn-sm rounded-pill font-weight-bold px-3">➤</a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Right Column: Top Airlines -->
+        <div class="col-lg-6">
+            <div class="section-header">
+                <h2>Top Airlines</h2>
+            </div>
+            {% for carrier in featured_carriers %}
+            <div class="list-item-card">
+                <div class="item-logo">
+                    <img src="{{ url_for('static', filename='carriers/airline-small/' + carrier.IATA|upper + '.png') }}"
+                         alt="Logo of {{ carrier.CrrDetails }}"
+                         onerror="this.src='/static/img/placeholder_logo.png'; this.style.opacity='0.5';">
+                </div>
+                <div class="item-content">
+                    <h6 class="text-truncate" title="{{ carrier.CrrDetails }}">{{ carrier.name }}</h6>
+                    <p>{{ carrier.CrrCountry2 }}</p>
+                </div>
+                <a href="{{ url_for('carrier', carrier_id=carrier.id) if carrier.id else '#' }}"
+                   class="btn btn-outline-primary btn-sm rounded-pill font-weight-bold px-3">➤</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Popular Routes Section -->
+    <div class="section-header">
+        <h2>Popular Routes ** Soon ** </h2>
+        <p>Trending flight paths and connections from our records.</p>
+    </div>
+    <div class="row">
+        {% for route in popular_routes %}
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="route-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="h4 font-weight-bold mb-0 text-dark">{{ route.origin }}</span>
+                    <i class="fas fa-plane text-primary mx-2"></i>
+                    <span class="h4 font-weight-bold mb-0 text-dark">{{ route.destination }}</span>
+                </div>
+                <div class="text-muted small text-uppercase font-weight-bold">Operated by</div>
+                <div class="text-primary font-weight-bold">{{ route.carrier_name }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

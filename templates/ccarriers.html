@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}All Carriers - Aviation Intelligence{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Breadcrumb styling */
+    .breadcrumb { background: transparent; padding: 0; }
+    .breadcrumb-item + .breadcrumb-item::before { color: rgba(255,255,255,0.7); }
+    .breadcrumb-item a { color: rgba(255,255,255,0.8) !important; transition: color 0.2s; }
+    .breadcrumb-item a:hover { color: #fff !important; text-decoration: none; }
+    .breadcrumb-item.active { color: #fff !important; font-weight: 600; }
+
+    /* Styling for carrier links in columns */
+    .carrier-link {
+        display: block;
+        padding: 5px 0;
+        color: #333;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .carrier-link:hover {
+        color: #007bff;
+        text-decoration: underline;
+    }
+    .carrier-link .flag-icon {
+        width: 20px; /* Small flag size */
+        height: auto;
+        margin-right: 8px;
+        vertical-align: middle; /* Align with text */
+    }
+
+    /* New styles for country sections (similar to continent-card in aairports.html) */
+    .country-card {
+        background-color: rgba(255, 255, 255, 0.95);
+        border: 1px solid #e0e0e0;
+        border-radius: 12px; /* Consistent with other cards */
+        padding: 20px; /* Add some internal padding */
+        margin-bottom: 40px; /* Space between country cards */
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .country-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .country-card h2 {
+        font-weight: 600;
+        color: #0056b3 !important; /* A slightly darker blue for contrast */
+    }
+
+    /* Styling for country headers within the country-card */
+    .country-section-header {
+        background-color: rgba(245, 245, 245, 0.95);
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-top: 0; /* Reset margin-top as it's inside country-card */
+        margin-bottom: 20px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+        transition: all 0.2s ease;
+    }
+    .country-section-header:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    .country-section-header h4 {
+        font-weight: 700;
+        color: #343a40 !important;
+    }
+    .flag-icon-large {
+        width: 30px;
+        height: auto;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Existing carrier-link styling will be overridden by .carrier-link.card */
+    .carrier-link .carrier-logo-small {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+    /* Styling for carrier links as cards */
+    .carrier-link.card {
+        display: flex;
+        align-items: center;
+        padding: 10px 15px;
+        text-decoration: none;
+        border-radius: 8px; /* Consistent card radius */
+        transition: all 0.2s ease;
+    }
+    .carrier-link.card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        border-color: #ddd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header with Jumbotron -->
+<header class="jumbotron jumbotron-fluid bg-primary text-white text-center py-5 mb-0">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb justify-content-center">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">All Carriers</li>
+            </ol>
+        </nav>
+        <h1 class="display-4 font-weight-bold">Airline Carriers</h1>
+        <p class="lead opacity-75">Explore our comprehensive database of global airline carriers.</p>
+    </div>
+</header>
+
+<div class="container mt-5 mb-5">
+    {% if grouped_carriers_by_country %}
+        <div class="d-flex flex-wrap justify-content-center mb-5">
+            {% for country_name in grouped_carriers_by_country %}
+            <a href="#{{ country_name | replace(' ', '-') }}" class="btn btn-outline-primary m-1 rounded-pill px-3 shadow-sm">{{ country_name }}</a>
+            {% endfor %}
+        </div>
+
+        {% for country_name, carriers_in_country in grouped_carriers_by_country.items() %}
+            <div class="country-card mb-5 p-4 rounded shadow-sm">
+                <div class="country-section-header d-flex align-items-center mb-3">
+                    <a href="#{{ country_name | replace(' ', '-') }}" class="text-decoration-none d-flex align-items-center">
+                        {% if carriers_in_country[0].CrrCountry %}
+                        <img src="{{ url_for('static', filename='flags/' + (carriers_in_country[0].CrrCountry|string).upper() + '.svg') }}"
+                            alt="{{ country_name }} Flag" class="flag-icon-large mr-2" onerror="this.style.display='none';">
+                        {% endif %}
+                        <h4 class="mb-0 text-secondary" id="{{ country_name | replace(' ', '-') }}">{{ country_name }}</h4>
+                    </a>
+                </div>
+                <hr class="my-3 border-primary">
+                <div class="row">
+                    {% for carrier in carriers_in_country %}
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                        <a href="{{ url_for('carrier', carrier_id=carrier.id) }}" class="carrier-link card p-3 shadow-sm h-100">
+                            <div class="d-flex align-items-center">
+                                {% if carrier.IATA and carrier.IATA != '-' %}
+                                <img src="{{ url_for('static', filename='carriers/airline-small/' + carrier.IATA|upper + '.png') }}"
+                                     alt="{{ carrier.name if carrier.name != '-' else 'N/A' }} Logo" class="carrier-logo-small"
+                                     onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/placeholder_logo.png') }}';">
+                                {% else %}
+                                <i class="fas fa-plane-departure mr-2 text-muted carrier-logo-small"></i>
+                                {% endif %}
+                                <span class="font-weight-bold text-dark">{{ carrier.name if carrier.name != '-' else 'N/A' }}</span>
+                            </div>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12 text-center py-5">
+            <p class="lead text-muted">No carriers found.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

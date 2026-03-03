@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Countries - Airport Destinations{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Breadcrumb styling */
+    .breadcrumb { background: transparent; padding: 0; }
+    .breadcrumb-item + .breadcrumb-item::before { color: rgba(255,255,255,0.7); }
+    .breadcrumb-item a { color: rgba(255,255,255,0.8) !important; transition: color 0.2s; }
+    .breadcrumb-item a:hover { color: #fff !important; text-decoration: none; }
+    .breadcrumb-item.active { color: #fff !important; font-weight: 600; }
+
+    /* Styling for country links in columns */
+    .country-link {
+        display: block;
+        padding: 5px 0;
+        color: #333;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .country-link:hover {
+        color: #007bff;
+        text-decoration: underline;
+    }
+    .country-link .flag-icon {
+        width: 20px; /* Small flag size */
+        height: auto;
+        margin-right: 8px;
+        vertical-align: middle; /* Align with text */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header with Jumbotron -->
+<header class="jumbotron jumbotron-fluid bg-primary text-white text-center py-5 mb-0">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb justify-content-center">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Countries</li>
+            </ol>
+        </nav>
+        <h1 class="display-4 font-weight-bold">Countries</h1>
+        <p class="lead opacity-75">Explore airports by country.</p>
+    </div>
+</header>
+
+<div class="container mt-4 mb-5">
+    {% if grouped_countries %}
+        <div class="d-flex flex-wrap justify-content-center mb-5">
+            {% for continent in grouped_countries %}
+            <a href="#{{ continent }}" class="btn btn-outline-primary m-1 rounded-pill px-3 shadow-sm">{{ continent }}</a>
+            {% endfor %}
+        </div>
+
+        {% for continent, countries_in_continent in grouped_countries.items() %}
+            <h2 class="mt-5 mb-3 text-primary" id="{{ continent }}">{{ continent }}</h2>
+            <hr class="mb-4 border-primary">
+            <div class="row">
+                {% for country in countries_in_continent %}
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <a href="{{ url_for('get_airports_by_country', country_code=country['country_code']) }}"
+                        class="country-link">
+                        <img src="{{ url_for('static', filename='flags/' + country['country_code'] + '.svg') }}"
+                            alt="{{ country['CountryName'] }} Flag" class="flag-icon" onerror="this.style.display='none';">
+                        {{ country['CountryName'] }} ({{ country['country_code'] }})
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12 text-center py-5">
+            <p class="lead text-muted">No countries found.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

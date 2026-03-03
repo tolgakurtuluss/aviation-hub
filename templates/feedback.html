@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Answer Feedback{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Result for Question {{ question_number }}</h3>
+                </div>
+                <div class="card-body">
+                    <p class="lead">{{ question.question }}</p>
+                    <div class="d-grid gap-2">
+                        {% for option in question.options %}
+                            {% set is_user_answer = (option == user_answer) %}
+                            {% set is_correct_answer = (option == question.answer) %}
+                            
+                            {% if is_user_answer and is_correct %}
+                                <button class="btn btn-success btn-lg mb-2" disabled>{{ option }} <span class="badge badge-light">Correct!</span></button>
+                            {% elif is_user_answer and not is_correct %}
+                                <button class="btn btn-danger btn-lg mb-2" disabled>{{ option }} <span class="badge badge-light">Your Answer</span></button>
+                            {% elif is_correct_answer %}
+                                <button class="btn btn-success btn-lg mb-2" disabled>{{ option }} <span class="badge badge-light">Correct Answer</span></button>
+                            {% else %}
+                                <button class="btn btn-outline-secondary btn-lg mb-2" disabled>{{ option }}</button>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% if not is_correct or question.link %}
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6>Learn More</h6>
+                        {% if question.link.type == 'carrier' %}
+                            <a href="{{ url_for('carrier', carrier_id=question.link.id) }}" target="_blank" rel="noopener noreferrer">
+                                See details about {{ question.subject_name }}
+                            </a>
+                        {% elif question.link.type == 'airport' %}
+                            <a href="{{ url_for('airport', iata_code=question.link.id) }}" target="_blank" rel="noopener noreferrer">
+                                See details about {{ question.subject_name }}
+                            </a>
+                        {% elif question.link.type == 'country' %}
+                            <a href="{{ url_for('get_airports_by_country', country_code=question.link.id) }}" target="_blank" rel="noopener noreferrer">
+                                See details about airports in {{ question.subject_name }}
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    {% if next_question_id < 10 %}
+                        <a href="{{ url_for('game_question', question_id=next_question_id) }}" class="btn btn-primary btn-lg mt-3">Next Question</a>
+                    {% else %}
+                        <a href="{{ url_for('score') }}" class="btn btn-primary btn-lg mt-3">Show My Score</a>
+                    {% endif %}
+                </div>
+                <div class="card-footer text-muted">
+                    Score: {{ score }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

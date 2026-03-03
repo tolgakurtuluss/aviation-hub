@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Airports in {{ cntairports[0].CountryName }}{% endblock %}
+
+{% block description %}Explore airport destinations by country.{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+    /* Breadcrumb styling */
+    .breadcrumb { background: transparent; padding: 0; }
+    .breadcrumb-item + .breadcrumb-item::before { color: rgba(255,255,255,0.7); }
+    .breadcrumb-item a { color: rgba(255,255,255,0.8) !important; transition: color 0.2s; }
+    .breadcrumb-item a:hover { color: #fff !important; text-decoration: none; }
+    .breadcrumb-item.active { color: #fff !important; font-weight: 600; }
+
+    /* Map Container */
+    #map { 
+        height: 450px; 
+        width: 100%; 
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Airport Card Styling */
+    .airport-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        height: 100%;
+    }
+    .airport-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 25px rgba(0,0,0,0.15) !important;
+    }
+    .flag-container {
+        height: 100px;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+    .flag-img {
+        max-height: 100%;
+        max-width: 100%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-radius: 2px;
+    }
+    .iata-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 123, 255, 0.9);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 0.75rem;
+        z-index: 2;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header with Jumbotron -->
+<header class="jumbotron jumbotron-fluid bg-primary text-white text-center py-4 mb-0">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb justify-content-center">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/continents/{{ cntairports[0].continent }}">{{
+                        cntairports[0].continent }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ cntairports[0].CountryName }}</li>
+            </ol>
+        </nav>
+        <h1 class="display-4 mb-2">
+            <img
+                src="{{ url_for('static', filename='flags/' + cntairports[0].country_code + '.svg') }}"
+                alt="{{ cntairports[0].CountryName }} Flag" width="60" class="mr-3 shadow-sm" style="border-radius: 4px;">
+            Airports in {{ cntairports[0].CountryName }}
+        </h1>
+        <p class="lead opacity-75">Discover {{ cntairports|length }} airports across the country.</p>
+    </div>
+</header>
+
+<div class="container mt-n4">
+    <!-- Map Section -->
+    <div class="card shadow-sm mb-5">
+        <div class="card-body p-2">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for airport in cntairports %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card airport-card shadow-sm">
+                <span class="iata-badge">{{ airport.IATACode }}</span>
+                <div class="flag-container">
+                    <img src="{{ url_for('static', filename='flags/' + airport.country_code + '.svg') }}"
+                        class="flag-img" alt="{{ airport.CountryName }} Flag">
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-truncate mb-1" title="{{ airport.display_name }}">{{ airport.display_name }}</h5>
+                    <p class="card-text text-muted small mb-2">
+                        <i class="fas fa-clock mr-1"></i> GMT: {{ airport['GMT-Time'] }}
+                    </p>
+                    <p class="card-text small text-secondary text-truncate mb-3">{{ airport['TroyaDetails'] }}</p>
+                    <a href="{{ url_for('airport', iata_code=airport.IATACode) }}" class="btn btn-outline-primary btn-sm btn-block mt-auto">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <p class="lead text-muted">No airports found for the selected country code.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JavaScript -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<!-- Custom JavaScript for Leaflet Map -->
+<script>
+    var map = L.map('map'); // Initialize Leaflet map without setting view initially
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var airports = {{ cntairports | tojson }};
+
+    airports.forEach(function (airport) {
+        var popupContent = '<b>' + airport['display_name'] + '</b><br>' +
+            airport['TroyaDetails'] + '<br><br>' +
+            '<a href="/airports/' + airport['IATACode'] + '">More details</a>';
+
+        var marker = L.marker([airport['Airport-Latitude'], airport['Airport-Longitude']])
+            .addTo(map)
+            .bindPopup(popupContent)
+            .openPopup();
+    });
+
+    // Fit the map to all markers with a padding of 50 pixels
+    var group = new L.featureGroup(airports.map(function (airport) {
+        return L.marker([airport['Airport-Latitude'], airport['Airport-Longitude']]);
+    }));
+    map.fitBounds(group.getBounds(), { padding: [50, 50] });
+</script>
+{% endblock %}

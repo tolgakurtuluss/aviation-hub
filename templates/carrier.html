@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}{{ details.name }} - Carrier Details{% endblock %}
+
+{% block description %}Detailed information about {{ details.name }} ({{ details.iata }}/{{ details.icao }}).{% endblock %}
+
+{% block extra_css %}
+<style>
+    .breadcrumb { background: transparent; padding: 0; }
+    .breadcrumb-item+.breadcrumb-item::before { color: rgba(255, 255, 255, 0.7); }
+    .breadcrumb-item a { color: rgba(255, 255, 255, 0.8) !important; }
+    .breadcrumb-item.active { color: #fff !important; font-weight: 600; }
+
+    .table-details th {
+        width: 40%;
+        background-color: rgba(0, 0, 0, 0.03);
+        font-weight: 600;
+    }
+
+    .carrier-card { border-radius: 12px; overflow: hidden; border: none; }
+    
+    .external-link-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .external-link-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .carrier-logo-small {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="jumbotron jumbotron-fluid bg-primary text-white text-center py-4 mb-0">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/carriers">Carriers</a></li>
+                {% if details.CrrCountry2 %}
+                <li class="breadcrumb-item">
+                    <a href="{{ url_for('countries') }}{{ details.CrrCountry }}">{{ details.CrrCountry2 }}</a>
+                </li>
+                {% endif %}
+                <li class="breadcrumb-item active" aria-current="page">{{ details.name if details.name != '-' else 'N/A' }}</li>
+            </ol>
+        </nav>
+        <h1 class="display-4 mb-2">
+            <img src="{{ url_for('static', filename='carriers/airline-big/' + details.IATA.upper() + '.png') }}"
+                 alt="{{ details.name if details.name != '-' else 'N/A' }} Logo" class="mr-3 shadow-sm" style="height: 50px; border-radius: 8px;"
+                 onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/placeholder_logo.png') }}';">
+            {{ details.name }}
+        </h1>
+        <br>
+    </div>
+</header>
+
+<div class="container mt-n4">
+    <div class="row">
+        <!-- Main Details -->
+        <div class="col-md-8 mb-4">
+            <div class="card shadow-sm carrier-card">
+                <div class="card-body">
+                    <h3 class="mb-4">Carrier Specifications</h3>
+                    <table class="table table-hover table-details border">
+                        <tbody>
+                            <tr>
+                                <th>Full Name</th>
+                                <td>{{ details.name }}</td>
+                            </tr>
+                            {% if details.icao and details.icao != '-' %}
+                            {% if details.ICAO and details.ICAO != '-' %}
+                            <tr>
+                                <th>Logo</th>
+                                <td>
+                                    <img src="{{ url_for('static', filename='carriers/airline-small/' + details.IATA.upper() + '.png') }}"
+                                         alt="{{ details.name if details.name != '-' else 'N/A' }} Small Logo" width="30" class="mr-2 shadow-sm"
+                                         onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/placeholder_logo.png') }}';">
+                                    <span class="text-muted small">({{ details.ICAO }})</span>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endif %}
+                            <tr>
+                                <th>IATA</th>
+                                <td><span class="badge badge-info">{{ details.IATA if details.IATA != '-' else 'N/A' }}</span></td>
+                            </tr>
+                            <tr>
+                                <th>Country</th>
+                                <td>
+                                    {% if details.CrrCountry and details.CrrCountry != '-' and details.CrrCountry2 %}
+                                    <a href="{{ url_for('countries') }}{{ details.CrrCountry }}" class="text-decoration-none d-flex align-items-center">
+                                        <img src="{{ url_for('static', filename='flags/' + details.CrrCountry.upper() + '.svg') }}" 
+                                             alt="{{ details.CrrCountry2 }}" width="25" class="mr-2 shadow-sm">
+                                        <span class="text-dark">{{ details.CrrCountry2 }}</span>
+                                    </a>
+                                    {% else %}
+                                    Not Specified
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Region</th>
+                                <td>
+                                    <a href="{{ url_for('continents') }}{{ details.Region }}" class="text-decoration-none d-flex align-items-center">
+                                        <span class="text-dark">{{ details.Region }}</span>
+                                    </a>
+                            </tr>
+                            <tr>
+                                <th>Service Status</th>
+                                <td>{{ details.ServiceStatus if details.ServiceStatus != '-' else 'N/A' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Additional Details</th>
+                                <td>{{ details.CrrDetails if details.CrrDetails != '-' else '---' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Actions -->
+        <div class="col-md-4">
+            {% if details.Website and details.Website != '-' %}
+            <div class="card shadow-sm mb-4 external-link-card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Official Website</h5>
+                    <img src="{{ url_for('static', filename='carriers/airline-small/' + details.IATA|upper + '.png') }}" 
+                                             alt="{{ details.CrrCountry2 }}" width="35" class="mr-2 shadow-sm">
+                    <hr>                         
+                    <p class="text-muted small">Visit the carrier's official page for bookings.</p>
+                    <a href="{{ details.Website }}" target="_blank" class="btn btn-primary btn-block">
+                        <i class="fas fa-external-link-alt mr-2"></i> Visit Website
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Flight Search</h5>
+                    <p class="small text-muted">Search for active flights operated by {{ details.name }}.</p>
+                    <a href="https://www.google.com/search?q={{ details.name }}+flights" target="_blank" class="btn btn-outline-info btn-block">
+                        Search on Google Flights
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if other_carriers_in_country %}
+    <div class="mt-5">
+        <hr>
+        <h3 class="mb-4">Other Carriers from {{ details.CrrCountry2 }}</h3>
+        <div class="row">
+            {% for carrier in other_carriers_in_country %}
+            {% if carrier.id != carrier_id %} {# Exclude the current carrier #}
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <a href="{{ url_for('carrier', carrier_id=carrier.id) }}" class="carrier-link card p-3 shadow-sm h-100 d-flex align-items-center">
+                    <div class="d-flex align-items-center">
+                        {% if carrier.IATA and carrier.IATA != '-' %}
+                        <img src="{{ url_for('static', filename='carriers/airline-small/' + carrier.IATA|upper + '.png') }}"
+                             alt="{{ carrier.name if carrier.name != '-' else 'N/A' }} Logo" class="carrier-logo-small mr-2"
+                             onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/placeholder_logo.png') }}';">
+                        {% else %}
+                        <i class="fas fa-plane-departure mr-2 text-muted"></i>
+                        {% endif %}
+                        <span class="font-weight-bold text-dark">{{ carrier.name if carrier.name != '-' else 'N/A' }}</span>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="text-center mt-5 mb-3">
+        <hr>
+        <p class="text-muted small">* Bilgilerde bir hata olduğunu düşünüyorsanız, lütfen <a href="mailto:tolgakurtulus95@gmail.com" class="text-primary">iletişime</a> geçiniz.</p>
+    </div>
+
+</div>
+{% endblock %}

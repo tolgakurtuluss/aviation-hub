@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Continents - Airport Destinations{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Breadcrumb styling */
+    .breadcrumb { background: transparent; padding: 0; }
+    .breadcrumb-item + .breadcrumb-item::before { color: rgba(255,255,255,0.7); }
+    .breadcrumb-item a { color: rgba(255,255,255,0.8) !important; transition: color 0.2s; }
+    .breadcrumb-item a:hover { color: #fff !important; text-decoration: none; }
+    .breadcrumb-item.active { color: #fff !important; font-weight: 600; }
+
+    /* Styling for continent links */
+    .continent-link {
+        display: block;
+        padding: 15px 20px;
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        color: #333;
+        text-decoration: none;
+        transition: all 0.2s ease-in-out;
+        font-weight: 500;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .continent-link:hover {
+        background-color: #e2e6ea;
+        border-color: #dae0e5;
+        color: #007bff;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header with Jumbotron -->
+<header class="jumbotron jumbotron-fluid bg-primary text-white text-center py-5 mb-0">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb justify-content-center">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Continents</li>
+            </ol>
+        </nav>
+        <h1 class="display-4 font-weight-bold">Continents</h1>
+        <p class="lead opacity-75">Explore airports by continent.</p>
+    </div>
+</header>
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        {% for continent_item in continents %}
+        {% if continent_item.continent %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <a href="{{ url_for('get_airports_by_continent', continent=continent_item.continent) }}"
+                class="continent-link text-center">
+                {{ continent_item.continent }}
+            </a>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% if not continents %}
+    <div class="col-12 text-center py-5">
+        <p class="lead text-muted">No continents found.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+    </div>

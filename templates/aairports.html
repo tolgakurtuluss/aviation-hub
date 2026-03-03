@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}All Airports - Airport Destinations{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Breadcrumb styling */
+    .breadcrumb { background: transparent; padding: 0; }
+    .breadcrumb-item + .breadcrumb-item::before { color: rgba(255,255,255,0.7); }
+    .breadcrumb-item a { color: rgba(255,255,255,0.8) !important; transition: color 0.2s; }
+    .breadcrumb-item a:hover { color: #fff !important; text-decoration: none; }
+    .breadcrumb-item.active { color: #fff !important; font-weight: 600; }
+
+    /* Styling for airport links in columns */
+    .airport-link {
+        display: block;
+        padding: 5px 0;
+        color: #333;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+    .airport-link:hover {
+        color: #007bff;
+        text-decoration: underline;
+    }
+    .airport-link .flag-icon {
+        width: 20px; /* Small flag size */
+        height: auto;
+        margin-right: 8px;
+        vertical-align: middle; /* Align with text */
+    }
+
+    /* New styles for continent and country sections */
+    .continent-card {
+        background-color: rgba(255, 255, 255, 0.95);
+        border: 1px solid #e0e0e0;
+        transition: all 0.3s ease;
+    }
+    .continent-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+    }
+    .continent-card h2 {
+        font-weight: 600;
+        color: #0056b3 !important; /* A slightly darker blue for contrast */
+    }
+
+    .country-section-header {
+        background-color: rgba(245, 245, 245, 0.95); /* Slightly darker background */
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-top: 30px; /* Space above country sections */
+        margin-bottom: 20px;
+        border: 1px solid #e0e0e0; /* Darker border */
+        box-shadow: 0 2px 10px rgba(0,0,0,0.07); /* Slightly more prominent shadow */
+        transition: all 0.2s ease;
+    }
+    .country-section-header:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    .country-section-header h4 {
+        font-weight: 700;
+        color: #343a40 !important; /* Darker text for country names */
+    }
+    .flag-icon-large {
+        width: 30px; /* Larger flag for country headers */
+        height: auto;
+        border-radius: 3px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Existing airport-link styling will be overridden by .airport-link.card */
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header with Jumbotron -->
+<header class="jumbotron jumbotron-fluid bg-primary text-white text-center py-5 mb-0">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb justify-content-center">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Airports</li>
+            </ol>
+        </nav>
+        <h1 class="display-4 font-weight-bold">Airport Destinations</h1>
+        <p class="lead opacity-75">Explore our comprehensive database of global airports and flight hubs.</p>
+    </div>
+</header>
+
+<div class="container mt-5 mb-5">
+    {% if grouped_airports_by_continent %}
+        <div class="d-flex flex-wrap justify-content-center mb-5">
+            {% for continent in grouped_airports_by_continent %}
+            <a href="#{{ continent }}" class="btn btn-outline-primary m-1 rounded-pill px-3 shadow-sm">{{ continent }}</a>
+            {% endfor %}
+        </div>
+        <hr>
+
+        {% for continent, countries_in_continent in grouped_airports_by_continent.items() %}
+            <div class="continent-card mb-5 p-4 rounded shadow-sm">
+                <a href="{{ url_for('get_airports_by_continent', continent=continent) }}" class="text-decoration-none">
+                    <h2 class="text-primary mb-0" id="{{ continent }}">{{ continent }}</h2>
+                </a>
+                <hr class="my-3 border-primary">
+
+                {% for country_name, airports_in_country in countries_in_continent.items() %}
+                    {% if airports_in_country %}
+                    <div class="country-section-header d-flex align-items-center mt-4 mb-3">
+                        <a href="{{ url_for('get_airports_by_country', country_code=airports_in_country[0].country_code) }}" class="text-decoration-none d-flex align-items-center">
+                            <img src="{{ url_for('static', filename='flags/' + airports_in_country[0].country_code + '.svg') }}"
+                                alt="{{ country_name }} Flag" class="flag-icon-large mr-2" onerror="this.style.display='none';">
+                            <h4 class="mb-0 text-secondary">{{ country_name }}</h4>
+                        </a>
+                    </div>
+                    {% endif %}
+                    <div class="row">
+                        {% for airport in airports_in_country %}
+                        <div class="col-lg-3 col-md-4 col-sm-6">
+                            <a href="{{ url_for('airport', iata_code=airport.IATACode) }}" class="airport-link card mb-3 p-3 shadow-sm">
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ url_for('static', filename='flags/' + airport.country_code + '.svg') }}"
+                                        alt="{{ airport.CountryName }} Flag" class="flag-icon mr-2" onerror="this.style.display='none';">
+                                    <span class="font-weight text-dark">{{ airport.display_name }}</span>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12 text-center py-5">
+            <p class="lead text-muted">No airports found.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
